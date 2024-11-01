@@ -1,0 +1,772 @@
+// player's normal start position
+PLAYER_PED p1 = (122.5, 116.5, 6.0) 0 90
+PLAYER_PED p2 = (133.5, 138.5, 6.0) 1 270
+PLAYER_PED p3 = (140.5, 126.5, 6.0) 2 0
+PLAYER_PED p4 = (114.5, 128.5, 6.0) 3 180
+PLAYER_PED p5 = (132.5, 116.5, 6.0) 4 270
+PLAYER_PED p6 = (122.5, 138.5, 6.0) 5 90
+
+//PARKED_CAR_DATA player_car = (50.5, 46.5, 1.0) 0 0 GT24640
+
+MAP_ZONE battle
+MAP_ZONE results
+
+// two basic boolean values
+SAVED_COUNTER true = 1 
+SAVED_COUNTER false = 0 
+
+COUNTER cash_per_round = 6000
+
+COUNTER loop = 1
+COUNTER min_players = 2      // Less than 2 players alive, round will finish
+COUNTER deaths = 0
+COUNTER current_player = 0
+COUNTER play_ready = 0
+COUNTER play_alive = 6
+COUNTER restarting = 0
+COUNTER waiting = 1
+COUNTER stage = 0
+
+// Stage
+// 0 = players picking their car
+// 1 = waiting players enter arena
+// 2 = round started
+// 3 = round finished     
+
+COUNTER playerCount = 1
+COUNTER playerCount2 = 0
+
+COUNTER p_car_pointer = 364
+COUNTER p_address_car
+COUNTER p_out_add
+
+COUNTER p1_locked = 0
+COUNTER p2_locked = 0
+COUNTER p3_locked = 0
+COUNTER p4_locked = 0
+COUNTER p5_locked = 0
+COUNTER p6_locked = 0
+
+COUNTER p1_died = 0
+COUNTER p2_died = 0
+COUNTER p3_died = 0
+COUNTER p4_died = 0
+COUNTER p5_died = 0
+COUNTER p6_died = 0
+
+CHAR_DATA p
+CAR_DATA c
+COUNTER p_locked = 0
+COUNTER p_died = 0
+
+// Cars
+
+CAR_DATA p1_rumble
+CAR_DATA p2_rumble
+CAR_DATA p3_rumble
+CAR_DATA p4_rumble
+CAR_DATA p5_rumble
+CAR_DATA p6_rumble
+
+CAR_DATA p1_firetruck
+CAR_DATA p2_firetruck
+CAR_DATA p3_firetruck
+CAR_DATA p4_firetruck
+CAR_DATA p5_firetruck
+CAR_DATA p6_firetruck
+
+CAR_DATA p1_bus
+CAR_DATA p2_bus
+CAR_DATA p3_bus
+CAR_DATA p4_bus
+CAR_DATA p5_bus
+CAR_DATA p6_bus
+
+CAR_DATA p1_gta1
+CAR_DATA p2_gta1
+CAR_DATA p3_gta1
+CAR_DATA p4_gta1
+CAR_DATA p5_gta1
+CAR_DATA p6_gta1
+
+
+// Picked car
+
+CAR_DATA p1_car
+CAR_DATA p2_car
+CAR_DATA p3_car
+CAR_DATA p4_car
+CAR_DATA p5_car
+CAR_DATA p6_car
+
+// Mines & Oil Slick
+
+GENERATOR p1_mines = (123.5, 119.5) 0 COLLECT_17 700 800 3
+GENERATOR p2_mines = (131.5, 135.5) 0 COLLECT_17 700 800 3
+GENERATOR p3_mines = (137.5, 127.5) 0 COLLECT_17 700 800 3
+GENERATOR p4_mines = (117.5, 127.5) 0 COLLECT_17 700 800 3
+GENERATOR p5_mines = (131.5, 119.5) 0 COLLECT_17 700 800 3
+GENERATOR p6_mines = (123.5, 135.5) 0 COLLECT_17 700 800 3
+
+GENERATOR p1_oil = (123.5, 118.5) 0 COLLECT_16 700 800 1
+GENERATOR p2_oil = (131.5, 136.5) 0 COLLECT_16 700 800 1
+GENERATOR p3_oil = (138.5, 127.5) 0 COLLECT_16 700 800 1
+GENERATOR p4_oil = (116.5, 127.5) 0 COLLECT_16 700 800 1
+GENERATOR p5_oil = (131.5, 118.5) 0 COLLECT_16 700 800 1
+GENERATOR p6_oil = (123.5, 136.5) 0 COLLECT_16 700 800 1
+
+
+//OBJ_DATA p1_oilshop = (123.5,118.5,6.0) 0 CAR_SHOP OILSLICK_SHOP
+//OBJ_DATA p1_mineshop = (123.5,119.5,6.0) 180 CAR_SHOP MINES_SHOP
+
+
+
+// Car repair Powerup
+
+COUNTER c_dmg_address
+COUNTER c_dmg_value = 0        // 0 = full restored
+
+COUNTER is_repair_on = 0
+OBJ_DATA powerup_repair
+
+
+
+
+// Subroutines
+
+
+p1_spawn_car:
+   p1_rumble = CREATE_CAR (123.5,114.5) 1 0 WBTWIN END
+   GIVE_WEAPON(p1_rumble, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p1_rumble, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p1_rumble, ON)
+   SET_CAR_FLAMEPROOF (p1_rumble, ON)
+   SET_CAR_ROCKETPROOF (p1_rumble, ON)
+   
+   p1_firetruck = CREATE_CAR (124.5,114.5) 1 0 FIRETRUK END
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p1_firetruck, CAR_FLAMETHROWER)
+   SET_CAR_BULLETPROOF (p1_firetruck, ON)
+   SET_CAR_FLAMEPROOF (p1_firetruck, ON)
+   SET_CAR_ROCKETPROOF (p1_firetruck, ON)
+   
+   p1_bus = CREATE_CAR (122.5,114.5) 1 0 BUS END
+   GIVE_WEAPON(p1_bus, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p1_bus, CAR_MACHINE_GUN, 50)
+   SET_CAR_NO_COLLIDE (p1_bus)
+   SET_CAR_BULLETPROOF (p1_bus, ON)
+   SET_CAR_FLAMEPROOF (p1_bus, ON)
+   SET_CAR_ROCKETPROOF (p1_bus, ON)
+   
+   p1_gta1 = CREATE_CAR (121.5,114.5) 1 0 GT24640 END
+   GIVE_WEAPON(p1_gta1, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p1_gta1, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p1_gta1, ON)
+   SET_CAR_FLAMEPROOF (p1_gta1, ON)
+   SET_CAR_ROCKETPROOF (p1_gta1, ON)
+RETURN
+
+p2_spawn_car:
+   p2_rumble = CREATE_CAR (131.5,140.5) 2 180 WBTWIN END
+   GIVE_WEAPON(p2_rumble, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p2_rumble, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p2_rumble, ON)
+   SET_CAR_FLAMEPROOF (p2_rumble, ON)
+   SET_CAR_ROCKETPROOF (p2_rumble, ON)
+   
+   p2_firetruck = CREATE_CAR (130.5,140.5) 2 180 FIRETRUK END
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p2_firetruck, CAR_FLAMETHROWER)
+   SET_CAR_BULLETPROOF (p2_firetruck, ON)
+   SET_CAR_FLAMEPROOF (p2_firetruck, ON)
+   SET_CAR_ROCKETPROOF (p2_firetruck, ON)
+   
+   p2_bus = CREATE_CAR (132.5,140.5) 2 180 BUS END
+   GIVE_WEAPON(p2_bus, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p2_bus, CAR_MACHINE_GUN, 50)
+   SET_CAR_NO_COLLIDE (p2_bus)
+   SET_CAR_BULLETPROOF (p2_bus, ON)
+   SET_CAR_FLAMEPROOF (p2_bus, ON)
+   SET_CAR_ROCKETPROOF (p2_bus, ON)
+   
+   p2_gta1 = CREATE_CAR (133.5,140.5) 2 180 GT24640 END
+   GIVE_WEAPON(p2_gta1, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p2_gta1, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p2_gta1, ON)
+   SET_CAR_FLAMEPROOF (p2_gta1, ON)
+   SET_CAR_ROCKETPROOF (p2_gta1, ON)
+RETURN
+
+p3_spawn_car:
+   p3_rumble = CREATE_CAR (142.5,127.5) 3 270 WBTWIN END
+   GIVE_WEAPON(p3_rumble, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p3_rumble, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p3_rumble, ON)
+   SET_CAR_FLAMEPROOF (p3_rumble, ON)
+   SET_CAR_ROCKETPROOF (p3_rumble, ON)
+   
+   p3_firetruck = CREATE_CAR (142.5,126.5) 1 270 FIRETRUK END
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p3_firetruck, CAR_FLAMETHROWER)
+   SET_CAR_BULLETPROOF (p3_firetruck, ON)
+   SET_CAR_FLAMEPROOF (p3_firetruck, ON)
+   SET_CAR_ROCKETPROOF (p3_firetruck, ON)
+   
+   p3_bus = CREATE_CAR (142.5,128.5) 2 270 BUS END
+   GIVE_WEAPON(p3_bus, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p3_bus, CAR_MACHINE_GUN, 50)
+   SET_CAR_NO_COLLIDE (p3_bus)
+   SET_CAR_BULLETPROOF (p3_bus, ON)
+   SET_CAR_FLAMEPROOF (p3_bus, ON)
+   SET_CAR_ROCKETPROOF (p3_bus, ON)
+   
+   p3_gta1 = CREATE_CAR (142.5,125.5) 2 270 GT24640 END
+   GIVE_WEAPON(p3_gta1, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p3_gta1, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p3_gta1, ON)
+   SET_CAR_FLAMEPROOF (p3_gta1, ON)
+   SET_CAR_ROCKETPROOF (p3_gta1, ON)
+RETURN
+
+p4_spawn_car:
+   p4_rumble = CREATE_CAR (112.5,128.5) 4 90 WBTWIN END
+   GIVE_WEAPON(p4_rumble, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p4_rumble, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p4_rumble, ON)
+   SET_CAR_FLAMEPROOF (p4_rumble, ON)
+   SET_CAR_ROCKETPROOF (p4_rumble, ON)
+   
+   p4_firetruck = CREATE_CAR (112.5,127.5) 1 90 FIRETRUK END
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p4_firetruck, CAR_FLAMETHROWER)
+   SET_CAR_BULLETPROOF (p4_firetruck, ON)
+   SET_CAR_FLAMEPROOF (p4_firetruck, ON)
+   SET_CAR_ROCKETPROOF (p4_firetruck, ON)
+   
+   p4_bus = CREATE_CAR (112.5,129.5) 2 90 BUS END
+   GIVE_WEAPON(p4_bus, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p4_bus, CAR_MACHINE_GUN, 50)
+   SET_CAR_NO_COLLIDE (p4_bus)
+   SET_CAR_BULLETPROOF (p4_bus, ON)
+   SET_CAR_FLAMEPROOF (p4_bus, ON)
+   SET_CAR_ROCKETPROOF (p4_bus, ON)
+   
+   p4_gta1 = CREATE_CAR (112.5,126.5) 2 90 GT24640 END
+   GIVE_WEAPON(p4_gta1, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p4_gta1, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p4_gta1, ON)
+   SET_CAR_FLAMEPROOF (p4_gta1, ON)
+   SET_CAR_ROCKETPROOF (p4_gta1, ON)
+RETURN
+
+p5_spawn_car:
+   p5_rumble = CREATE_CAR (132.5,114.5) 5 0 WBTWIN END
+   GIVE_WEAPON(p5_rumble, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p5_rumble, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p5_rumble, ON)
+   SET_CAR_FLAMEPROOF (p5_rumble, ON)
+   SET_CAR_ROCKETPROOF (p5_rumble, ON)
+   
+   p5_firetruck = CREATE_CAR (131.5,114.5) 1 0 FIRETRUK END
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p5_firetruck, CAR_FLAMETHROWER)
+   SET_CAR_BULLETPROOF (p5_firetruck, ON)
+   SET_CAR_FLAMEPROOF (p5_firetruck, ON)
+   SET_CAR_ROCKETPROOF (p5_firetruck, ON)
+   
+   p5_bus = CREATE_CAR (133.5,114.5) 2 0 BUS END
+   GIVE_WEAPON(p5_bus, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p5_bus, CAR_MACHINE_GUN, 50)
+   SET_CAR_NO_COLLIDE (p5_bus)
+   SET_CAR_BULLETPROOF (p5_bus, ON)
+   SET_CAR_FLAMEPROOF (p5_bus, ON)
+   SET_CAR_ROCKETPROOF (p5_bus, ON)
+   
+   p5_gta1 = CREATE_CAR (130.5,114.5) 2 0 GT24640 END
+   GIVE_WEAPON(p5_gta1, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p5_gta1, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p5_gta1, ON)
+   SET_CAR_FLAMEPROOF (p5_gta1, ON)
+   SET_CAR_ROCKETPROOF (p5_gta1, ON)
+RETURN
+
+p6_spawn_car:
+   p6_rumble = CREATE_CAR (123.5,140.5) 6 180 WBTWIN END
+   GIVE_WEAPON(p6_rumble, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p6_rumble, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p6_rumble, ON)
+   SET_CAR_FLAMEPROOF (p6_rumble, ON)
+   SET_CAR_ROCKETPROOF (p6_rumble, ON)
+   
+   p6_firetruck = CREATE_CAR (124.5,140.5) 1 180 FIRETRUK END
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   //GIVE_WEAPON(p1_firetruck, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p6_firetruck, CAR_FLAMETHROWER)
+   SET_CAR_BULLETPROOF (p6_firetruck, ON)
+   SET_CAR_FLAMEPROOF (p6_firetruck, ON)
+   SET_CAR_ROCKETPROOF (p6_firetruck, ON)
+   
+   p6_bus = CREATE_CAR (122.5,140.5) 2 180 BUS END
+   GIVE_WEAPON(p6_bus, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p6_bus, CAR_MACHINE_GUN, 50)
+   SET_CAR_NO_COLLIDE (p6_bus)
+   SET_CAR_BULLETPROOF (p6_bus, ON)
+   SET_CAR_FLAMEPROOF (p6_bus, ON)
+   SET_CAR_ROCKETPROOF (p6_bus, ON)
+   
+   p6_gta1 = CREATE_CAR (121.5,140.5) 2 180 GT24640 END
+   GIVE_WEAPON(p6_gta1, CAR_MACHINE_GUN, 50)
+   GIVE_WEAPON(p6_gta1, CAR_MACHINE_GUN, 50)
+   SET_CAR_BULLETPROOF (p6_gta1, ON)
+   SET_CAR_FLAMEPROOF (p6_gta1, ON)
+   SET_CAR_ROCKETPROOF (p6_gta1, ON)
+RETURN
+
+
+delete_all:
+   DELETE_ITEM (p1_rumble)
+   DELETE_ITEM (p1_firetruck)
+   DELETE_ITEM (p1_bus)
+   DELETE_ITEM (p1_gta1)
+   
+   DELETE_ITEM (p2_rumble)
+   DELETE_ITEM (p2_firetruck)
+   DELETE_ITEM (p2_bus)
+   DELETE_ITEM (p2_gta1)
+   
+   DELETE_ITEM (p3_rumble)
+   DELETE_ITEM (p3_firetruck)
+   DELETE_ITEM (p3_bus)
+   DELETE_ITEM (p3_gta1)
+   
+   DELETE_ITEM (p4_rumble)
+   DELETE_ITEM (p4_firetruck)
+   DELETE_ITEM (p4_bus)
+   DELETE_ITEM (p4_gta1)
+   
+   DELETE_ITEM (p5_rumble)
+   DELETE_ITEM (p5_firetruck)
+   DELETE_ITEM (p5_bus)
+   DELETE_ITEM (p5_gta1)
+   
+   DELETE_ITEM (p6_rumble)
+   DELETE_ITEM (p6_firetruck)
+   DELETE_ITEM (p6_bus)
+   DELETE_ITEM (p6_gta1)
+RETURN
+
+kill:
+++deaths
+IF (deaths = 1)
+   DISPLAY_MESSAGE (5050)    // CHOCTASTIC!
+ENDIF
+IF (deaths = 2)
+   DISPLAY_MESSAGE (5052)    // YOU SHOT YOUR LOAD!
+ENDIF
+IF (deaths = 3)
+   DISPLAY_MESSAGE (5053)    // OOH… DID THAT HURT?
+ENDIF
+IF (deaths = 4)
+   DISPLAY_MESSAGE (5056)    // YOU'RE TOAST, BUDDY!
+ENDIF
+IF (deaths = 5)
+   DISPLAY_MESSAGE (5061)    // DAMN SUNDAY DRIVERS!
+ENDIF
+IF (deaths = 6)
+   DISPLAY_MESSAGE (5057)    // EAT LEADEN DEATH, PUNK!
+ENDIF
+IF (deaths = 7)
+   DISPLAY_MESSAGE (5058)    // THAT'S GOTTA HURT!
+ENDIF
+IF (deaths = 8)
+   DISPLAY_MESSAGE (5059)    // SORRY ABOUT THAT!
+ENDIF
+IF (deaths = 9)
+   DISPLAY_MESSAGE (5060)    // XIN LOI, MY MAN!
+ENDIF
+IF (deaths = 10)
+   DISPLAY_MESSAGE (5062)    // SUCK IT AND SEE!
+ENDIF
+IF (deaths = 11)
+   DISPLAY_MESSAGE (5031)    // OH, SORRY ABOUT THAT… DID THAT HURT?
+   SET deaths = 0
+ENDIF
+
+RETURN
+
+
+////////////////////////////////////////////////////////////////
+//                                                            //
+//  BEGIN MAIN SCRIPT! and stuff...                           //
+//                                                            //
+////////////////////////////////////////////////////////////////
+
+LEVELSTART 
+
+
+EXEC
+SET_AMBIENT_LEVEL (0.3, 0)
+SWITCH_GENERATOR (p1_mines , ON)
+SWITCH_GENERATOR (p2_mines , ON)
+SWITCH_GENERATOR (p3_mines , ON)
+SWITCH_GENERATOR (p4_mines , ON)
+SWITCH_GENERATOR (p5_mines , ON)
+SWITCH_GENERATOR (p6_mines , ON)
+SWITCH_GENERATOR (p1_oil , ON)
+SWITCH_GENERATOR (p2_oil , ON)
+SWITCH_GENERATOR (p3_oil , ON)
+SWITCH_GENERATOR (p4_oil , ON)
+SWITCH_GENERATOR (p5_oil , ON)
+SWITCH_GENERATOR (p6_oil , ON)
+ENDEXEC
+
+// Counting players
+
+
+
+IF ( CHECK_CHARACTER_HEALTH ( p1 , 0 ))
+  ++playerCount
+  ADD_SCORE (p1, cash_per_round)
+  GOSUB p1_spawn_car:
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p2 , 0 ))
+  ++playerCount
+  ADD_SCORE (p2, cash_per_round)
+  GOSUB p2_spawn_car:
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p3 , 0 ))
+  ++playerCount
+  ADD_SCORE (p3, cash_per_round)
+  GOSUB p3_spawn_car:
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p4 , 0 ))
+  ++playerCount
+  ADD_SCORE (p4, cash_per_round)
+  GOSUB p4_spawn_car:
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p5 , 0 ))
+  ++playerCount
+  ADD_SCORE (p5, cash_per_round)
+  GOSUB p5_spawn_car:
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p6 , 0 ))
+  ++playerCount
+  ADD_SCORE (p6, cash_per_round)
+  GOSUB p6_spawn_car:
+ENDIF
+
+SET playerCount2 = (playerCount - 1)   // the true players count
+
+IF ( playerCount2 = 1 )     // singleplayer
+   SET min_players = 1
+ENDIF
+
+
+WHILE_EXEC (loop = 1)
+
+
+
+
+SET current_player = 1
+  WHILE_EXEC(current_player < playerCount)
+    IF(current_player=1)
+      SET p=(p1+0)
+      SET c=(p1_car+0)
+      SET p_locked = (p1_locked+0)
+      SET p_died = (p1_died+0)
+    ENDIF
+    IF(current_player=2)
+      SET p=(p2+0)
+      SET c=(p2_car+0)
+      SET p_locked = (p2_locked+0)
+      SET p_died = (p2_died+0)
+    ENDIF
+    IF(current_player=3)
+      SET p=(p3+0)
+      SET c=(p3_car+0)
+      SET p_locked = (p3_locked+0)
+      SET p_died = (p3_died+0)
+    ENDIF
+    IF(current_player=4)
+      SET p=(p4+0)
+      SET c=(p4_car+0)
+      SET p_locked = (p4_locked+0)
+      SET p_died = (p4_died+0)
+    ENDIF
+    IF(current_player=5)
+      SET p=(p5+0)
+      SET c=(p5_car+0)
+      SET p_locked = (p5_locked+0)
+      SET p_died = (p5_died+0)
+    ENDIF
+    IF(current_player=6)
+      SET p=(p6+0)
+      SET c=(p6_car+0)
+      SET p_locked = (p6_locked+0)
+      SET p_died = (p6_died+0)
+    ENDIF
+    
+    
+    // Code
+    
+    IF (stage = 0)
+       
+       IF ( p_locked = 0 )
+       IF ( IS_CHARACTER_IN_ANY_CAR (p) )
+          SET p_locked = 1
+          SET_ENTER_CONTROL_STATUS (p, OFF)
+          STORE_CAR_CHARACTER_IS_IN (p, c)
+          ++play_ready
+       ENDIF
+       ENDIF   // p_locked = 0
+
+       
+    ENDIF   // stage = 0
+    
+    
+    
+    IF ( stage = 1 )
+       IF ( (waiting = 1) AND ( IS_CHAR_IN_ZONE (p, battle) ) )
+          ++play_ready
+       ENDIF
+       
+       IF ( play_ready = playerCount2 )
+          SET waiting = 0
+       ENDIF
+       
+       IF ( waiting = 0 )
+          SET_CAR_BULLETPROOF (c, OFF)
+          SET_CAR_FLAMEPROOF (c, OFF)
+          SET_CAR_ROCKETPROOF (c, OFF)
+          ++restarting
+          IF ( restarting = playerCount2 )
+             SET play_alive = (playerCount2+0)
+             SET restarting = 0
+             ++stage
+             DISPLAY_MESSAGE (5504)             // Fight! Race On!
+          ENDIF
+          
+       ENDIF
+       DO_NOWT
+    ENDIF
+    
+    
+    
+    IF ( stage = 2 )      // Round started
+       IF ( ( HAS_CHARACTER_DIED ( p ) ) AND ( p_died = 0 ) )
+          SET p_locked = 0
+          SET p_died = 1
+          -- play_alive
+          GOSUB kill:
+       ENDIF
+       
+       IF ( is_repair_on = 1 )         //  repair car powerup
+       IF ( LOCATE_CHARACTER_BY_CAR (p, 127.5, 127.5 , 2.0, 1.0, 1.0) )
+          SET c_dmg_address = (c+117)
+          CHANGE_GANG_CHAR_RESPECT (c_dmg_address, c_dmg_value, 114)
+          
+          /* WIP                                                                                    
+          
+          SET c_dmg_address = (c_dmg_address + 8)
+          CHANGE_GANG_CHAR_RESPECT (c_dmg_address, c_dmg_value, 114)
+          
+           END WIP       */                                                                          
+          
+          SET is_repair_on = 0
+          DELETE_ITEM (powerup_repair)
+       ENDIF
+       ENDIF
+       
+    ENDIF
+    
+    
+    IF ( stage = 3 )      // Round finished
+       
+       IF ( p_died = 0 )
+          WARP_FROM_CAR_TO_POINT (p, 127.5, 96.5 , 4.0, 0)  // Teleport Winner, if alive
+          SET p_died = 2
+       ELSE
+       IF ( NOT ( IS_CHAR_IN_ZONE ( p, results ) ) )
+          WARP_FROM_CAR_TO_POINT (p, 127.5, 98.5 , 2.0, 180)   // Teleport other players
+       ENDIF
+       ENDIF
+       
+    ENDIF
+    
+    
+    IF ( stage = 4 )      // Cleaning arena
+       DELETE_ITEM (c)
+       -- play_ready
+       SET p_died = 0
+       
+       
+       
+       IF ( play_ready = 0 )
+          ++stage
+          SET waiting = 1
+       ENDIF
+    ENDIF
+    
+    
+    IF ( stage = 5 )     // Restarting
+       IF ( current_player = 1 )
+          WARP_FROM_CAR_TO_POINT (p, 122.5, 116.5, 6.0, 90)
+          GOSUB p1_spawn_car:
+          SET_ENTER_CONTROL_STATUS (p1, ON)
+          SET p_died = 0
+          SET p_locked = 0
+          ADD_SCORE (p1, cash_per_round)
+          ++restarting
+       ENDIF
+       IF ( current_player = 2 )
+          WARP_FROM_CAR_TO_POINT (p, 133.5, 138.5, 6.0, 270)
+          GOSUB p2_spawn_car:
+          SET_ENTER_CONTROL_STATUS (p2, ON)
+          SET p_died = 0
+          SET p_locked = 0
+          ADD_SCORE (p2, cash_per_round)
+          ++restarting
+       ENDIF
+       IF ( current_player = 3 )
+          WARP_FROM_CAR_TO_POINT (p, 140.5, 126.5, 6.0, 0)
+          GOSUB p3_spawn_car:
+          SET_ENTER_CONTROL_STATUS (p3, ON)
+          SET p_died = 0
+          SET p_locked = 0
+          ADD_SCORE (p3, cash_per_round)
+          ++restarting
+       ENDIF
+       IF ( current_player = 4 )
+          WARP_FROM_CAR_TO_POINT (p, 114.5, 128.5, 6.0, 180)
+          GOSUB p4_spawn_car:
+          SET_ENTER_CONTROL_STATUS (p4, ON)
+          SET p_died = 0
+          SET p_locked = 0
+          ADD_SCORE (p4, cash_per_round)
+          ++restarting
+       ENDIF
+       IF ( current_player = 5 )
+          WARP_FROM_CAR_TO_POINT (p, 132.5, 116.5, 6.0, 270)
+          GOSUB p5_spawn_car:
+          SET_ENTER_CONTROL_STATUS (p5, ON)
+          SET p_died = 0
+          SET p_locked = 0
+          ADD_SCORE (p5, cash_per_round)
+          ++restarting
+       ENDIF
+       IF ( current_player = 6 )
+          WARP_FROM_CAR_TO_POINT (p, 122.5, 138.5, 6.0, 90)
+          GOSUB p6_spawn_car:
+          SET_ENTER_CONTROL_STATUS (p6, ON)
+          SET p_died = 0
+          SET p_locked = 0
+          ADD_SCORE (p6, cash_per_round)
+          ++restarting
+       ENDIF
+       
+       IF ( restarting = playerCount2 )    // all players reseted
+          SET stage = 0                    // start new round
+          SET restarting = 0
+       ENDIF
+    ENDIF
+    
+    
+    
+    IF(current_player=1)
+      SET p1_locked = (p_locked+0)
+      SET p1_died = (p_died+0)
+      SET p1_car = (c+0)
+    ENDIF
+    IF(current_player=2)
+      SET p2_locked = (p_locked+0)
+      SET p2_died = (p_died+0)
+      SET p2_car = (c+0)
+    ENDIF
+    IF(current_player=3)
+      SET p3_locked = (p_locked+0)
+      SET p3_died = (p_died+0)
+      SET p3_car = (c+0)
+    ENDIF
+    IF(current_player=4)
+      SET p4_locked = (p_locked+0)
+      SET p4_died = (p_died+0)
+      SET p4_car = (c+0)
+    ENDIF
+    IF(current_player=5)
+      SET p5_locked = (p_locked+0)
+      SET p5_died = (p_died+0)
+      SET p5_car = (c+0)
+    ENDIF
+    IF(current_player=6)
+      SET p6_locked = (p_locked+0)
+      SET p6_died = (p_died+0)
+      SET p6_car = (c+0)
+    ENDIF
+    
+    ++current_player
+    
+    
+    
+  ENDWHILE
+  
+  
+  IF ( stage = 0 )
+     IF ( play_ready = playerCount2 )         // playerCount2
+        ++stage
+        SET play_ready = 0
+        DISPLAY_MESSAGE (5510)         // Players Ready!
+     ENDIF
+  ENDIF
+  
+  
+  IF (stage = 1)
+     SET play_ready = 0
+  ENDIF
+  
+  
+  IF ( stage = 2 )
+  IF ( play_alive < min_players )         // Only 1 (or 0) alive
+     IF ( NOT ( DELAY ( 80 ) ) )
+        ++stage
+        DISPLAY_MESSAGE (5501)  // Race Over!
+        GOSUB delete_all:
+     ENDIF
+  ENDIF
+  
+  IF ( is_repair_on = 0 )          // Spawn 'repair car' powerup
+  IF ( NOT ( DELAY ( 400 ) ) )
+     SET is_repair_on = 1
+     powerup_repair = CREATE_OBJ (127.5,127.5) 0 MOVING_COLLECT_30 END
+  ENDIF
+  ENDIF
+  
+  
+  
+  ENDIF  // stage = 2
+  
+  
+  
+  IF ( stage = 3 )
+     IF ( NOT ( DELAY ( 130 ) ) )
+        SET play_ready = (playerCount2+0)
+        ++stage
+     ENDIF
+  ENDIF
+
+
+
+ENDWHILE
+
+
+
+LEVELEND

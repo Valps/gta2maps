@@ -1,0 +1,8 @@
+[MapFiles]
+GMPFile = derby.gmp
+STYFile = ste.sty
+SCRFile = destruction_derby.scr
+GXTFile = derby.gxt
+MMPFile = derby.mmp
+Description = Bloodring - Destruction Derby
+GCIFile = derby.gci
