@@ -1,0 +1,8 @@
+[MapFiles]
+GMPFile = blackout_2.gmp
+STYFile = ste.sty
+SCRFile = blackout_tagmode.scr
+Description = Blackout Arena (Tag Mode)
+
+[Client]
+lighting = dusk
