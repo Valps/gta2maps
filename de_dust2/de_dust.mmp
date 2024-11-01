@@ -1,0 +1,5 @@
+[MapFiles]
+GMPFile = de_dust.gmp
+STYFile = cst.sty
+SCRFile = de_dust.scr
+Description = de_dust2

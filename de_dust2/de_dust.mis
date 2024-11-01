@@ -1,0 +1,526 @@
+// players
+PLAYER_PED p1 = (63.8, 217.9, 255.0) 8 0
+PLAYER_PED p2 = (64.8, 217.9, 255.0) 8 0
+PLAYER_PED p3 = (65.8, 217.9, 255.0) 8 0
+PLAYER_PED p4 = (66.8, 217.9, 255.0) 8 0
+PLAYER_PED p5 = (67.8, 217.9, 255.0) 8 0
+PLAYER_PED p6 = (68.8, 217.9, 255.0) 8 0
+
+DECLARE_POLICELEVEL (1)
+
+// counters
+COUNTER loop = 1
+COUNTER playerCount = 0       // players number
+COUNTER current_player = 0
+
+COUNTER p_ct = -1              // player team: 1 = CT; 0 = Terrorists
+COUNTER p_bomb = 0             // = 1 if player has the bomb; = 2 if player has the defuse kit
+
+COUNTER player_has_bomb = 0      // = 1 if any player holds the bomb
+COUNTER player_has_defuse = 0    // = 1 if any player holds the defuse kit
+
+COUNTER p1_ct = -1
+COUNTER p2_ct = -1
+COUNTER p3_ct = -1
+COUNTER p4_ct = -1
+COUNTER p5_ct = -1
+COUNTER p6_ct = -1
+
+COUNTER p_ready = 0               // players ready (in battle zone)
+COUNTER begin = 0                 // The battle began
+
+COUNTER ct_count = 0              // Number of CT players
+COUNTER te_count = 0              // Number of T players
+
+COUNTER te_start = 0              // = 0 if no terrorist picked the bomb yet
+COUNTER ct_start = 0              // = 0 if no counter-terrorist picked the defuse kit yet
+
+COUNTER bomb_plant_location = -1        // = 1 if bomb was planted at location 1 (A); = 2 if at location 2 (B)
+COUNTER arming_bomb = 0           // = 1 if bomb is arming by bomber
+
+COUNTER counting_arming_bomb = 0   // cycles of arming bomb
+COUNTER counting_bomb_to_explode = 0   // cycles to bomb explode
+
+COUNTER counting_disarming_bomb = 0   // cycles of disarming bomb
+COUNTER disarming_bomb = 0            // = 1 if a CT is disarming a bomb; = 2 if the bomb was successfully disarmed
+
+COUNTER bomb_planted_A = 0        // = 1 if bomb was armed at location A
+COUNTER bomb_planted_B = 0        // = 1 if bomb was armed at location B
+COUNTER bomb_planted = 0          // = 1 if bomb was armed
+
+COUNTER bomb_drop_location = -1   // = -1 if (re)spawn in T base, = 1 if respawn in Location 1 top, = 2 if in Location 1 bot, = 3 in Location 2
+
+COUNTER bomb_exploded = 0         // = 1 if bomb exploded
+COUNTER game_over = 0             // = 1 if CT or T wins
+
+COUNTER p1_bomb = 0               // = 1 if p1 has bomb, = 2 if p1 has defuse kit
+COUNTER p2_bomb = 0
+COUNTER p3_bomb = 0
+COUNTER p4_bomb = 0
+COUNTER p5_bomb = 0
+COUNTER p6_bomb = 0
+
+COUNTER one_team_only = 0        // = 1 if all players chosen the same team
+
+
+OBJ_DATA defuse_kit = (158.5, 148.4) 0 BRIEFCASE // defuse kit
+OBJ_DATA bomb_obj = (134.5, 144.5) 0 BOMB // bomb
+
+ARROW_DATA defuser
+ARROW_DATA bomber
+ARROW_DATA bomb_location_1
+ARROW_DATA bomb_location_2
+
+TIMER_DATA bomb_timer
+TIMER_DATA time_to_arm_bomb
+TIMER_DATA time_to_disarm_bomb
+
+SOUND bomb_blip
+
+CHAR_DATA p       // player data
+
+// Functions
+
+pick_the_bomb:
+  SET p_bomb = 1
+  SET player_has_bomb = 1
+  DELETE_ITEM ( bomb_obj )
+  POINT_ARROW_AT (bomber, p)
+RETURN
+
+// Defuser in order to defuse
+disarming_bomb_section:                             
+ IF (disarming_bomb = 0)
+   SET disarming_bomb = 1
+   DISPLAY_TIMER (time_to_disarm_bomb, 7)           // 7 seconds to disarm
+ ENDIF
+ ++counting_disarming_bomb
+RETURN
+
+// Cancel defuse
+disarming_bomb_canceled:                            
+  IF (  disarming_bomb = 1 )
+    SET disarming_bomb = 0
+    SET counting_disarming_bomb = 0
+    CLEAR_TIMER (time_to_disarm_bomb)
+  ENDIF
+RETURN
+
+
+LEVELSTART // ------------------------- LEVEL START --------------------------
+
+
+SET_AMBIENT_LEVEL ( 1.0 , 0 ) // brightness
+SET_SHADING_LEVEL ( 10 )
+
+
+
+IF ( CHECK_CHARACTER_HEALTH ( p1 , 0 ))
+  ++playerCount
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p2 , 0 ))
+  ++playerCount
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p3 , 0 ))
+  ++playerCount
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p4 , 0 ))
+  ++playerCount
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p5 , 0 ))
+  ++playerCount
+ENDIF
+
+IF ( CHECK_CHARACTER_HEALTH ( p6 , 0 ))
+  ++playerCount
+ENDIF
+
+IF ( playerCount = 1 )                // Singleplayer
+  DO_NOWT
+ENDIF
+
+
+
+// Loop
+
+WHILE_EXEC( loop = 1 )
+
+SET current_player=1
+  WHILE_EXEC(current_player <= playerCount)
+    IF(current_player=1)
+      SET p=(p1+0)
+      SET p_ct=(p1_ct+0)
+      SET p_bomb=(p1_bomb+0)
+    ENDIF
+    IF(current_player=2)
+      SET p=(p2+0)
+      SET p_ct=(p2_ct+0)
+      SET p_bomb=(p2_bomb+0)
+    ENDIF
+    IF(current_player=3)
+      SET p=(p3+0)
+      SET p_ct=(p3_ct+0)
+      SET p_bomb=(p3_bomb+0)
+    ENDIF
+    IF(current_player=4)
+      SET p=(p4+0)
+      SET p_ct=(p4_ct+0)
+      SET p_bomb=(p4_bomb+0)
+    ENDIF
+    IF(current_player=5)
+      SET p=(p5+0)
+      SET p_ct=(p5_ct+0)
+      SET p_bomb=(p5_bomb+0)
+    ENDIF
+    IF(current_player=6)
+      SET p=(p6+0)
+      SET p_ct=(p6_ct+0)
+      SET p_bomb=(p6_bomb+0)
+    ENDIF
+
+    IF ( CHECK_CHARACTER_HEALTH ( p , 0 ))
+      IF(IS_CHAR_IN_ZONE ( p , start_zone))  //  start zone
+        SET_CHAR_INVINCIBLE(p,ON)
+      ENDIF
+      
+      IF(IS_CHAR_IN_ZONE ( p , ct_pick_zone))  // picking CT
+        IF (p_ct = -1)                         // To ensure that it will count +1 instead of +2, +3 etc
+          ++ct_count                           // because WARP_FROM_CAR_TO_POINT isn't fast enough
+          SET_CHAR_GRAPHIC_TYPE (p, GANG_GRAPHIC, 13)
+          WARP_FROM_CAR_TO_POINT (p, 162.4, 149.6, 2.0, 270) // CT base
+          GIVE_WEAPON (p, SILENCED_MACHINE_GUN, 15)
+          GIVE_WEAPON (p, PISTOL, 30)
+          GIVE_WEAPON (p, MOLOTOV, 5)
+        ENDIF
+        SET_CHAR_INVINCIBLE(p,OFF)
+        SET p_ct=1                             // Choose the team and lock the previous IF
+      ENDIF
+      
+      IF(IS_CHAR_IN_ZONE ( p , t_pick_zone))  // picking T
+        IF (p_ct = -1)                        // To ensure that it will count +1
+          ++te_count
+          SET_CHAR_GRAPHIC_TYPE (p, GANG_GRAPHIC, 5)
+          WARP_FROM_CAR_TO_POINT (p, 134.8, 141.7, 4.0, 0) // T base
+          GIVE_WEAPON (p, MACHINE_GUN, 15)
+          GIVE_WEAPON (p, PISTOL, 30)
+          GIVE_WEAPON (p, MOLOTOV, 5)
+        ENDIF
+        SET_CHAR_INVINCIBLE(p,OFF)
+        SET p_ct=0
+      ENDIF
+      
+      IF ( begin = 0 )
+      IF(NOT (p_ct = -1) )     // count players with team chosen
+        ++p_ready
+      ELSE
+        SET p_ready = 0        // reset if any player didn't choose their team
+      ENDIF
+
+      IF(p_ready = playerCount)   // All players already chosen their team
+        SET begin = 1
+        POINT_ARROW_AT (bomb_location_1, 162.5 , 157.5 , 4.0)         // Set the bomb location's arrows
+        POINT_ARROW_AT (bomb_location_2, 164.0 , 135.9 , 3.0)
+        SET_ARROW_COLOUR (bomb_location_1, RED)
+        SET_ARROW_COLOUR (bomb_location_2, YELLOW)
+        
+        IF ( ( ct_count = 0 ) OR ( te_count = 0 ) )          // all chosen the same team
+          SET one_team_only = 1
+        ENDIF
+      ENDIF                      // ENDIF p_ready = playerCount
+      ENDIF                      // ENDIF begin = 0
+      
+
+      IF(begin = 1)              // Main Loop
+        IF(p_ct = 1)             // CT
+          IF ( ( ct_start = 0 ) AND (LOCATE_CHARACTER_ON_FOOT (p, 158.5, 148.4, 2.0 , 1.0, 1.0)) )  // pick the defuse kit
+            SET p_bomb = 2                          // p has defuse kit
+            SET player_has_defuse = 1
+            SET ct_start = 1                        // lock this subroutine
+            DELETE_ITEM ( defuse_kit )
+            POINT_ARROW_AT (defuser, p)             // Player with defuse kit
+          ENDIF
+          
+          IF ( bomb_planted = 1 )
+            IF ( p_bomb = 2 )                       // has defuse kit
+              // Location 1 (Site A)
+              IF ( bomb_planted_A = 1 )
+                IF ( ( ( (LOCATE_CHARACTER_ON_FOOT (p, 162.5 , 157.5 , 4.0, 1.0, 1.0)) AND ( NOT ( HAS_CHARACTER_DIED (p) ) ) ) AND ( IS_CHARACTER_STOPPED (p) ) ) AND ( NOT ( IS_CHAR_FIRING_IN_AREA (p, 162.5 , 157.5 , 4.0, 1.0, 1.0) ) ) )
+                  GOSUB disarming_bomb_section:
+                ELSE
+                  GOSUB disarming_bomb_canceled:
+                ENDIF
+              ELSE
+                // Location 2 (Site B)
+                IF ( bomb_planted_B = 1 )
+                IF ( ( ( (LOCATE_CHARACTER_ON_FOOT (p, 164.0 , 135.9 , 3.0, 1.0, 1.0)) AND ( NOT ( HAS_CHARACTER_DIED (p) ) ) ) AND ( IS_CHARACTER_STOPPED (p) ) ) AND ( NOT ( IS_CHAR_FIRING_IN_AREA (p, 164.0 , 135.9 , 3.0, 1.0, 1.0) ) ) )
+                  GOSUB disarming_bomb_section:
+                ELSE
+                  GOSUB disarming_bomb_canceled:
+                ENDIF
+                ENDIF
+              ENDIF       // ENDIF bomb_planted_A = 1
+            ENDIF         // ENDIF p_bomb = 2   (has defuse kit)
+          ENDIF           // ENDIF bomb_planted = 1
+          
+          // CT is dead
+          IF ( HAS_CHARACTER_DIED ( p ) )
+            SET p_ct = -1                    // out of the team
+            SET ct_count = (ct_count - 1)    // decrease number of CT alive
+            IF ( p_bomb = 2 )                // Defuser died
+              SET player_has_defuse = 0
+              SET ct_start = 0               // unlock the first IF
+              REMOVE_ARROW ( defuser )
+              defuse_kit = CREATE_OBJ ( 158.5, 148.4, 2.0 ) 0 BRIEFCASE END    // Respawn defuse kit at CT base
+            ENDIF
+          ENDIF
+
+        ENDIF             // ENDIF CT
+        
+        // Bomb defused
+        IF (  ( counting_disarming_bomb = 50 ) AND ( disarming_bomb = 1 ) )       // 50 cycles
+          SET bomb_planted = 0
+          SET disarming_bomb = 2          // defused
+          SET counting_bomb_to_explode = 0
+          DELETE_ITEM ( bomb_obj )
+          DELETE_ITEM ( bomb_blip )      // sound
+          CLEAR_TIMER (bomb_timer)
+        ENDIF
+
+
+        IF(p_ct = 0)             // Terrorist
+        
+          /*
+          IF ( ( te_start = 0 ) AND (LOCATE_CHARACTER_ON_FOOT (p, 134.5, 144.5, 4.0 , 1.0, 1.0)) )  // pick the bomb
+            SET p_bomb = 1
+            SET player_has_bomb = 1
+            SET te_start = 1                        // lock this subroutine
+            DELETE_ITEM ( bomb_obj )
+            POINT_ARROW_AT (bomber, p)             // Player with defuse kit
+          ENDIF */
+          
+          IF ( p_bomb = 1 )      // Bomber
+          // Bomber in bomb site A (location 1)
+          IF ( (( (LOCATE_CHARACTER_ON_FOOT (p, 162.5 , 157.5 , 4.0, 1.0, 1.0)) AND ( NOT ( HAS_CHARACTER_DIED (p) ) ) ) AND ( IS_CHARACTER_STOPPED (p) )) AND ( NOT ( IS_CHAR_FIRING_IN_AREA (p, 162.5 , 157.5 , 4.0, 1.0, 1.0) ) ) )
+            IF ( (arming_bomb = 0) AND ( NOT ( bomb_plant_location = 1 ) ) )
+              DISPLAY_TIMER (time_to_arm_bomb, 5)
+              SET arming_bomb = 1
+              SET bomb_plant_location = 1
+            ENDIF
+            ++counting_arming_bomb
+          ELSE
+            IF ( ( arming_bomb = 1 ) AND ( LOCATE_CHARACTER_ON_FOOT (p, 162.5 , 157.5 , 4.0, 1.0, 1.0) ) )   // reset only if the bomber doesn't satisfy the conditions to arm
+              SET arming_bomb = 0
+              SET bomb_plant_location = -1
+              SET counting_arming_bomb = 0       // reset counter
+              CLEAR_TIMER (time_to_arm_bomb)
+            ENDIF
+          ENDIF       // ENDIF site A
+          
+          // Bomber in bomb site B (location 2)
+          IF ( (( (LOCATE_CHARACTER_ON_FOOT (p, 164.0 , 135.9 , 3.0, 1.0, 1.0)) AND ( NOT ( HAS_CHARACTER_DIED (p) ) ) ) AND ( IS_CHARACTER_STOPPED (p) )) AND ( NOT ( IS_CHAR_FIRING_IN_AREA (p, 164.0 , 135.9 , 3.0, 1.0, 1.0) ) ) )
+            IF ( (arming_bomb = 0) AND ( NOT ( bomb_plant_location = 2 ) ) )
+              DISPLAY_TIMER (time_to_arm_bomb, 5)
+              SET arming_bomb = 1
+              SET bomb_plant_location = 2
+            ENDIF
+            ++counting_arming_bomb
+          ELSE
+            IF ( ( arming_bomb = 1 ) AND ( LOCATE_CHARACTER_ON_FOOT (p, 164.0 , 135.9 , 3.0, 1.0, 1.0) ) )   // reset only if the bomber doesn't satisfy the conditions to arm
+              SET arming_bomb = 0
+              SET bomb_plant_location = -1
+              SET counting_arming_bomb = 0       // reset counter
+              CLEAR_TIMER (time_to_arm_bomb)
+            ENDIF
+          ENDIF       // ENDIF site B
+          
+          
+          ENDIF       // ENDIF p_bomb = 1
+
+          // Bomb planted
+          IF ( ( counting_arming_bomb >= 150 ) AND (p_bomb = 1) )        // 5 s * 30 cycles/s
+            SET p_bomb = 0
+            SET player_has_bomb = 0
+            SET bomb_planted = 1
+            SET arming_bomb = 0
+
+            REMOVE_ARROW (bomber)
+            REMOVE_ARROW (bomb_location_1)
+            REMOVE_ARROW (bomb_location_2)
+
+            // detect which location the bomb was armed
+            IF ( bomb_plant_location = 1 )
+              SET bomb_planted_A = 1
+              bomb_obj = CREATE_OBJ (162.5, 157.5, 4.0) 0 BOMB END // Bomb Location 1
+              LEVEL_END_POINT_ARROW_AT (bomb_location_1, 162.5 , 157.5 , 4.0)   // Bomb Location 1
+              bomb_blip = CREATE_SOUND (162.5, 157.5, 4.0) BOMB_TICK PLAY_FOREVER END // Bomb Location 1
+            ENDIF
+            IF ( bomb_plant_location = 2 )
+              SET bomb_planted_B = 1
+              bomb_obj = CREATE_OBJ (164.0 , 135.9 , 3.0) 0 BOMB END // Bomb Location 2
+              LEVEL_END_POINT_ARROW_AT (bomb_location_2, 164.0 , 135.9 , 3.0)   // Bomb Location 2
+              bomb_blip = CREATE_SOUND (164.0 , 135.9 , 3.0) BOMB_TICK PLAY_FOREVER END // Bomb Location 2
+            ENDIF
+
+            DISPLAY_TIMER (bomb_timer, 35)  // 35 Seconds to Explode
+            SET counting_arming_bomb = -1   // lock this subroutine
+
+          ENDIF           // ENDIF Bomb Planted
+
+          
+          // T is dead
+          IF ( HAS_CHARACTER_DIED ( p ) )
+            SET p_ct = -1                  // out of the T team
+            SET te_count = (te_count - 1)    // decrease the number of T alive
+            IF ( p_bomb = 1 )              // if he has the bomb
+              SET p_bomb = 0
+              SET player_has_bomb = 0      // no one have the bomb
+              REMOVE_ARROW (bomber)        // No arrow
+              
+              // bomb respawn
+              IF ( IS_CHAR_IN_ZONE (p, location1_top) )  // Site A top
+                bomb_obj = CREATE_OBJ (162.5, 151.5, 2.0) 0 BOMB END // Location 1 top
+                SET bomb_drop_location = 1
+              ELSE
+                IF ( IS_CHAR_IN_ZONE (p, location1_bot) )
+                  bomb_obj = CREATE_OBJ (162.5, 161.5, 3.0) 0 BOMB END // Location 1 bot
+                  SET bomb_drop_location = 2
+                ELSE
+                  IF ( IS_CHAR_IN_ZONE (p, location2) )
+                    bomb_obj = CREATE_OBJ (165.5, 131.5, 3.0) 0 BOMB END // Location 2
+                    SET bomb_drop_location = 3
+                  ELSE
+                    bomb_obj = CREATE_OBJ (134.5, 144.5, 4.0) 0 BOMB END // T base
+                    SET bomb_drop_location = -1
+                  ENDIF
+                ENDIF
+              ENDIF   // ENDIF  IS_CHAR_IN_ZONE (p, location1_top)
+              
+            ENDIF     // ENDIF p_bomb = 1
+          ENDIF       // ENDIF HAS_CHARACTER_DIED ( p )
+          
+          // Pick the bomb
+          IF ( ( bomb_planted = 0 ) AND ( player_has_bomb = 0 ) )
+            IF ( bomb_drop_location = -1 )
+              IF ( LOCATE_CHARACTER_ON_FOOT (p, 134.5, 144.5, 4.0 , 1.0, 1.0) )   // T base
+                GOSUB pick_the_bomb:
+              ENDIF
+            ELSE
+              IF ( bomb_drop_location = 1 )
+                IF ( LOCATE_CHARACTER_ON_FOOT (p, 162.5, 151.5, 2.0 , 1.0, 1.0) )  // Location 1 top
+                  GOSUB pick_the_bomb:
+                ENDIF
+              ELSE
+                IF ( bomb_drop_location = 2 )
+                  IF ( LOCATE_CHARACTER_ON_FOOT (p, 162.5, 161.5, 3.0 , 1.0, 1.0) )  // Location 1 bot
+                    GOSUB pick_the_bomb:
+                  ENDIF
+                ELSE
+                  IF ( LOCATE_CHARACTER_ON_FOOT (p, 165.5, 131.5, 3.0 , 1.0, 1.0) )  // Location 2
+                    GOSUB pick_the_bomb:
+                  ENDIF
+                ENDIF
+                ENDIF
+              ENDIF
+            ENDIF         // ENDIF  player_has_bomb = 0
+            
+              
+
+        ENDIF             // ENDIF Terrorist
+
+
+        // Bombing timer
+        IF ( bomb_planted = 1 )
+          ++counting_bomb_to_explode
+        ENDIF
+
+        // Time's up: KABOOM
+        IF ( (counting_bomb_to_explode = 340) AND ( bomb_exploded = 0 ) )    // 35 seconds   // 340 or 1050
+          SET bomb_exploded = 1
+          SET bomb_planted = 2                    // set to "exploded"
+          DELETE_ITEM ( bomb_obj )
+          DELETE_ITEM ( bomb_blip )
+          CLEAR_TIMER (bomb_timer)
+
+          IF ( bomb_plant_location = 1 )
+            EXPLODE_LARGE (162.5, 157.5, 4.0)     // Explode
+            REMOVE_ARROW (bomb_location_1)
+          ENDIF
+          IF ( bomb_plant_location = 2 )
+            EXPLODE_LARGE (164.0 , 135.9 , 3.0)   // Explode
+            REMOVE_ARROW (bomb_location_2)
+          ENDIF
+        ENDIF             // ENDIF KABOOM
+
+        // Terrorist wins (bomb explode)
+        IF ( ( bomb_exploded = 1 ) AND ( game_over = 0 ) )
+          SET game_over = 1
+          DISPLAY_MESSAGE (1125) // JOB FAILED
+        ENDIF
+        
+        // Counter-Terrorist wins (bomb defused)
+        IF ( ( disarming_bomb = 2 ) AND ( game_over = 0 ) )
+          SET game_over = 1
+          DISPLAY_MESSAGE (1124) // JOB COMPLETE
+        ENDIF
+        
+        IF ( one_team_only = 0 )    // if there is at least 1 CT and 1 Terrorist, set another victory condition
+          IF ( ct_count = 0 )       // All CT died
+            SET game_over = 1
+            DISPLAY_MESSAGE (1125) // JOB FAILED
+          ENDIF
+          IF ( (te_count = 0) AND ( bomb_planted = 0 ) )   // All terrorists died before arm the bomb
+            SET game_over = 1
+            DISPLAY_MESSAGE (1124) // JOB COMPLETE
+          ENDIF
+        ENDIF                // ENDIF one_team_only = 0
+
+        // Finish the game
+        IF ( game_over = 1 )
+          IF ( NOT ( DELAY ( 120 ) ) )
+            FINISH_LEVEL (NO_BONUS)
+          ENDIF
+        ENDIF
+
+      ENDIF               // ENDIF "begin" loop
+
+
+    ENDIF                 // ENDIF CHECK_CHARACTER_HEALTH ( p , 0 )
+    
+    // Save the personal variables
+
+				IF(current_player=1)
+					SET p1_ct=(p_ct+0)
+     SET p1_bomb=(p_bomb+0)
+				ENDIF
+				IF(current_player=2)
+					SET p2_ct=(p_ct+0)
+     SET p2_bomb=(p_bomb+0)
+				ENDIF
+				IF(current_player=3)
+					SET p3_ct=(p_ct+0)
+     SET p3_bomb=(p_bomb+0)
+				ENDIF
+				IF(current_player=4)
+					SET p4_ct=(p_ct+0)
+     SET p4_bomb=(p_bomb+0)
+				ENDIF
+				IF(current_player=5)
+					SET p5_ct=(p_ct+0)
+     SET p5_bomb=(p_bomb+0)
+				ENDIF
+				IF(current_player=6)
+					SET p6_ct=(p_ct+0)
+     SET p6_bomb=(p_bomb+0)
+				ENDIF
+
+    ++current_player
+    ENDWHILE
+
+ENDWHILE
+
+
+LEVELEND
