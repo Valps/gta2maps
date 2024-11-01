@@ -1,0 +1,8 @@
+[MapFiles]
+GMPFile = blackout_2.gmp
+STYFile = ste.sty
+SCRFile = blackout_no_arrows.scr
+Description = Blackout Arena (No Arrows)
+
+[Client]
+lighting = dusk
