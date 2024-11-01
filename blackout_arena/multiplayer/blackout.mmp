@@ -1,8 +1,0 @@
-[MapFiles]
-GMPFile = blackout_2.gmp
-STYFile = ste.sty
-SCRFile = blackout.scr
-Description = Blackout Arena
-
-[Client]
-lighting = dusk
